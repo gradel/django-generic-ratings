@@ -171,17 +171,8 @@ class RatingHandler(object):
         If anonymous votes are allowed, this method checks for ip adresses too.
         """
         if self.allow_anonymous:
-            ip_address = request.META.get("REMOTE_ADDR")
-            if ip_address is None:
-                # anonymous user must at least own an ip adreess
-                return False
-            if self.votes_per_ip_address:
-                # in case of vote-per-ip cap, check if this ip
-                # can continue voting this object
-                count = models.Vote.objects.filter_for(instance,
-                    user__isnull=True, ip_address=ip_address).count()
-                return count < self.votes_per_ip_address
-            return True
+            # anonymous user must at least own an ip adreess
+            return bool(request.META.get("REMOTE_ADDR"))
         else:
             # for normal user voting the user must be authenticated
             return request.user.is_authenticated()
@@ -235,6 +226,15 @@ class RatingHandler(object):
         another listener to the signal: the voting process is killed if 
         just one receiver returns False.
         """
+        if self.allow_anonymous and self.votes_per_ip_address:
+            # in case of vote-per-ip cap, check if this ip
+            # can continue voting this object
+            ip_address = request.META.get("REMOTE_ADDR")
+            if ip_address is None:
+                return False
+            count = models.Vote.objects.filter_for(vote.content_object,
+                user__isnull=True, ip_address=ip_address).count()
+            return count < self.votes_per_ip_address
         return self.can_change_vote if vote.id else True
         
     def vote(self, request, vote):
