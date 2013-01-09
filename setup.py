@@ -14,7 +14,7 @@ for dirpath, dirnames, filenames in os.walk('ratings'):
     elif filenames:
         for f in filenames:
             data_files.append(os.path.join(dirpath[len("ratings")+1:], f))
-            
+
 version = "%s.%s" % __import__('ratings').VERSION[:2]
 
 setup(name='django-generic-ratings',
@@ -22,10 +22,9 @@ setup(name='django-generic-ratings',
     description='Django ratings tools supporting ajax, generic content type scores, multiple ratings for each content object.',
     author='Francesco Banconi',
     author_email='francesco.banconi@gmail.com',
-    url='https://bitbucket.org/frankban/django-generic-ratings/downloads',
     zip_safe=False,
     packages=[
-        'ratings', 
+        'ratings',
         'ratings.templatetags',
         'ratings.views',
         'ratings.forms',
