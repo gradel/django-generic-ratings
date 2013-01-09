@@ -226,7 +226,7 @@ class RatingHandler(object):
         another listener to the signal: the voting process is killed if 
         just one receiver returns False.
         """
-        if self.allow_anonymous and self.votes_per_ip_address:
+        if self.allow_anonymous and self.votes_per_ip_address and not request.user.is_authenticated():
             # in case of vote-per-ip cap, check if this ip
             # can continue voting this object
             ip_address = request.META.get("REMOTE_ADDR")
