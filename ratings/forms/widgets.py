@@ -10,6 +10,14 @@ class BaseWidget(forms.TextInput):
     """
     template = None
     instance = None
+    creation_counter = 0 #used to ensure each slider/star widget can be rendered with unique HTML id
+
+
+    def __init__(self, *args, **kwargs):
+
+        BaseWidget.creation_counter = (BaseWidget.creation_counter + 1) % 10000 #cycle the counter when too large
+
+        super(BaseWidget, self).__init__(*args, **kwargs)
 
     def get_parent_id(self, name, attrs):
         final_attrs = self.build_attrs(attrs, type=self.input_type, name=name)
@@ -23,6 +31,7 @@ class BaseWidget(forms.TextInput):
             widget_id = '%s-%s' % (prefix, name)
         if key:
             widget_id = '%s_%s' % (widget_id, slugify(key))
+        widget_id = '%s_%d' % (widget_id, self.creation_counter) #different id for different renditions of the same rating
         return widget_id
 
     def get_values(self, min_value, max_value, step=1):
