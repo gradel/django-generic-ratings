@@ -13,8 +13,11 @@
 {% block javascript %}
     {% if values %}
         <script type="text/javascript" charset="utf-8">
-            (function($) {
-                $(document).ready(function() {
+            (function() {
+                var checker = 0;
+                function jqueryLoaded() {
+                    clearInterval(checker);
+                    var $ = window.jQuery;
                     var objects = $('#{{ star_id }} :radio.stardust');
                     var vote_form = objects.closest('form');
                     objects.rating({
@@ -28,13 +31,22 @@
                                 } else {
                                     vote_form.find('#{{ parent_id }}').val(0);
                                     vote_form.trigger('star_delete');
-                                };  
+                                };
                             }
                         {% endif %}
                     });
                     {% if not can_delete_vote and not read_only %}$('.rating-cancel').remove();{% endif %}
-                });
-            })(jQuery);
+                }
+                function checkJquery() {
+                    if (window.jQuery) {
+                        jqueryLoaded();
+                    }
+                    if (checker === 0) {
+                        checker = window.setInterval(checkJquery, 100);
+                    }
+                }
+                checkJquery();
+            }());
         </script>
     {% endif %}
 {% endblock %}
