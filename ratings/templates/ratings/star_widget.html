@@ -1,11 +1,12 @@
+{% load l10n %}
 {% block parent %}{% if not read_only %}{{ parent }}{% endif %}{% endblock %}
 
 {% block widget %}
     {% if values %}
         <div class="star-container" id="{{ star_id }}">
             {% for current_value in values %}
-                <input type="radio" class="stardust{{ split }}" value="{{ current_value }}"{% if current_value == value %} checked="checked"{% endif %} />
-            {% endfor %} 
+                <input type="radio" class="stardust{{ split }}" value="{{ current_value|unlocalize }}"{% if current_value == value %} checked="checked"{% endif %} />
+            {% endfor %}
         </div>
     {% endif %}
 {% endblock %}
