@@ -4,18 +4,18 @@ from django import forms
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
 
+
 class BaseWidget(forms.TextInput):
     """
     Base widget. Do not use this directly.
     """
     template = None
     instance = None
-    creation_counter = 0 #used to ensure each slider/star widget can be rendered with unique HTML id
-
+    creation_counter = 0  # used to ensure each slider/star widget can be rendered with unique HTML id
 
     def __init__(self, *args, **kwargs):
 
-        BaseWidget.creation_counter = (BaseWidget.creation_counter + 1) % 10000 #cycle the counter when too large
+        BaseWidget.creation_counter = (BaseWidget.creation_counter + 1) % 10000  # cycle the counter when too large
 
         super(BaseWidget, self).__init__(*args, **kwargs)
 
@@ -31,7 +31,7 @@ class BaseWidget(forms.TextInput):
             widget_id = '%s-%s' % (prefix, name)
         if key:
             widget_id = '%s_%s' % (widget_id, slugify(key))
-        widget_id = '%s_%d' % (widget_id, self.creation_counter) #different id for different renditions of the same rating
+        widget_id = '%s_%d' % (widget_id, self.creation_counter)  # different id for different renditions of the same rating
         return widget_id
 
     def get_values(self, min_value, max_value, step=1):
@@ -40,6 +40,7 @@ class BaseWidget(forms.TextInput):
         while value <= max_value:
             yield value
             value += decimal_step
+
 
 class SliderWidget(BaseWidget):
     """
@@ -63,7 +64,7 @@ class SliderWidget(BaseWidget):
     """
     def __init__(self, min_value, max_value, step, instance=None,
         can_delete_vote=True, key='', read_only=False, default='',
-        template='ratings/slider_widget.html', attrs=None):
+            template='ratings/slider_widget.html', attrs=None):
         """
         The argument *default* is used when the initial value is None.
         """
@@ -133,7 +134,7 @@ class StarWidget(BaseWidget):
     """
     def __init__(self, min_value, max_value, step, instance=None,
         can_delete_vote=True, key='', read_only=False,
-        template='ratings/star_widget.html', attrs=None):
+            template='ratings/star_widget.html', attrs=None):
         super(StarWidget, self).__init__(attrs)
         self.min_value = min_value
         self.max_value = max_value
@@ -152,7 +153,7 @@ class StarWidget(BaseWidget):
         attrs['type'] = 'hidden'
         split_value = int(1 / self.step)
         if split_value == 1:
-            values = range(1, self.max_value+1)
+            values = range(1, self.max_value + 1)
             split = u''
         else:
             values = self.get_values(self.min_value, self.max_value, self.step)
@@ -169,6 +170,77 @@ class StarWidget(BaseWidget):
             'parent_id': self.get_parent_id(name, attrs),
             'value': self._get_value(value, split_value),
             'star_id': self.get_widget_id('star', name, self.key),
+        }
+
+    def _get_value(self, original, split):
+        if original:
+            value = round(original * split) / split
+            return Decimal(str(value))
+
+    def render(self, name, value, attrs=None):
+        context = self.get_context(name, value, attrs or {})
+        return render_to_string(self.template, context)
+
+
+class BootstrapWidget(BaseWidget):
+    """
+    rating widget.
+
+    In order to use this widget you must download the
+    jQuery Star Rating Plugin available at
+    http://www.fyneworks.com/jquery/star-rating/#tab-Download
+    and then load the required javascripts and css, e.g.::
+
+        <link href="/path/to/jquery.rating.css" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="/path/to/jquery.MetaData.js"></script>
+        <script type="text/javascript" src="/path/to/jquery.rating.js"></script>
+
+    This widget triggers the following javascript events:
+
+    - *star_change* with the vote value as argument
+      (fired when the user changes his vote)
+    - *star_delete* without arguments
+      (fired when the user deletes his vote)
+
+    It's easy to bind these events using jQuery, e.g.::
+
+        $(document).bind('star_change', function(event, value) {
+            alert('New vote: ' + value);
+        });
+    """
+    def __init__(self, min_value, max_value, step,
+            instance=None,
+            can_delete_vote=True,
+            key='',
+            read_only=False,
+            template='ratings/bootstrap_widget.html',
+            attrs=None,
+            show_clear=True):
+        super(BootstrapWidget, self).__init__(attrs)
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step = step
+        self.instance = instance
+        self.can_delete_vote = can_delete_vote
+        self.read_only = read_only
+        self.template = template
+        self.key = key
+        self.show_clear = show_clear
+
+    def get_context(self, name, value, attrs=None):
+        attrs['type'] = 'hidden'
+        split_value = int(1 / self.step)
+        return {
+            'min_value': str(self.min_value),
+            'max_value': str(self.max_value),
+            'step': str(self.step),
+            'can_delete_vote': self.can_delete_vote,
+            'readonly': self.read_only,
+            'parent': super(BootstrapWidget, self).render(name, value, attrs),
+            'parent_id': self.get_parent_id(name, attrs),
+            'value': self._get_value(value, split_value),
+            'star_id': self.get_widget_id('star', name, self.key),
+            'show_clear': self.show_clear,
         }
 
     def _get_value(self, original, split):

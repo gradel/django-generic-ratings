@@ -2,7 +2,7 @@
     $(document).ajaxSend(function(event, xhr, settings) {
         function getCookie(name) {
             var cookieValue = null;
-            if (document.cookie && document.cookie != '') {
+            if (document.cookie && document.cookie !== '') {
                 var cookies = document.cookie.split(';');
                 for (var i = 0; i < cookies.length; i++) {
                     var cookie = jQuery.trim(cookies[i]);
@@ -39,11 +39,11 @@
             form_object.find(':input').each(function() {
                 values[this.name] = $(this).val();
             });
-            $.ajax({  
-                type: "POST",  
-                url: form_object.attr('action'),  
-                data: values,  
-                success: function(data) {  
+            $.ajax({
+                type: "POST",
+                url: form_object.attr('action'),
+                data: values,
+                success: function(data) {
                     form_object.find('.success').show();
                     form_object.trigger('vote_submit', [data]);
                 },
@@ -59,6 +59,9 @@
                 return false;
             });
             form_object.bind('star_change', function(event, value) {
+                submit_form(form_object);
+            });
+            form_object.bind('rating.change', function(event) {
                 submit_form(form_object);
             });
             form_object.bind('star_delete', function(event) {

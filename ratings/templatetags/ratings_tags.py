@@ -6,6 +6,7 @@ from ratings import handlers
 
 register = template.Library()
 
+
 def _parse(token):
     """
     Argument validation for common templatetags.
@@ -80,6 +81,7 @@ def get_rating_form(parser, token):
     """
     return RatingFormNode(*_parse(token))
 
+
 class RatingFormNode(template.Node):
     def __init__(self, target_object, key, varname):
         self.target_object = template.Variable(target_object)
@@ -152,6 +154,7 @@ def get_rating_score(parser, token):
     """
     return RatingScoreNode(*_parse(token))
 
+
 class RatingScoreNode(template.Node):
     def __init__(self, target_object, key, varname):
         self.target_object = template.Variable(target_object)
@@ -194,6 +197,7 @@ SCORES_ANNOTATE_PATTERN = r"""
     $ # end of line
 """
 SCORES_ANNOTATE_EXPRESSION = re.compile(SCORES_ANNOTATE_PATTERN, re.VERBOSE)
+
 
 @register.tag
 def scores_annotate(parser, token):
@@ -279,6 +283,7 @@ def scores_annotate(parser, token):
     # to the node
     return ScoresAnnotateNode(fields_map, **kwargs)
 
+
 class ScoresAnnotateNode(template.Node):
     def __init__(self, fields_map, queryset, key, order_by, varname):
         # fields
@@ -353,6 +358,7 @@ GET_RATING_VOTE_PATTERN = r"""
 """
 GET_RATING_VOTE_EXPRESSION = re.compile(GET_RATING_VOTE_PATTERN, re.VERBOSE)
 
+
 @register.tag
 def get_rating_vote(parser, token):
     """
@@ -405,6 +411,7 @@ def get_rating_vote(parser, token):
         error = u"%r tag has invalid arguments" % tag_name
         raise template.TemplateSyntaxError, error
     return RatingVoteNode(**match.groupdict())
+
 
 class RatingVoteNode(template.Node):
     def __init__(self, target_object, user, key, varname):
@@ -459,6 +466,7 @@ GET_LATEST_VOTES_FOR_PATTERN = r"""
 GET_LATEST_VOTES_FOR_EXPRESSION = re.compile(GET_LATEST_VOTES_FOR_PATTERN,
     re.VERBOSE)
 
+
 @register.tag
 def get_latest_votes_for(parser, token):
     """
@@ -505,6 +513,7 @@ GET_LATEST_VOTES_BY_PATTERN = r"""
 """
 GET_LATEST_VOTES_BY_EXPRESSION = re.compile(GET_LATEST_VOTES_BY_PATTERN,
     re.VERBOSE)
+
 
 @register.tag
 def get_latest_votes_by(parser, token):
@@ -560,6 +569,7 @@ def _get_latest_vote(parser, token, expression):
         raise template.TemplateSyntaxError, error
     # to the node
     return LatestVotesNode(**match.groupdict())
+
 
 class LatestVotesNode(template.Node):
     def __init__(self, key, varname, target_object=None, user=None):
@@ -621,6 +631,7 @@ VOTES_ANNOTATE_PATTERN = r"""
 """
 VOTES_ANNOTATE_EXPRESSION = re.compile(VOTES_ANNOTATE_PATTERN, re.VERBOSE)
 
+
 @register.tag
 def votes_annotate(parser, token):
     """
@@ -676,6 +687,7 @@ def votes_annotate(parser, token):
         raise template.TemplateSyntaxError, error
     # to the node
     return VotesAnnotateNode(**match.groupdict())
+
 
 class VotesAnnotateNode(template.Node):
     def __init__(self, field, queryset, user, key, order_by, varname):
@@ -773,11 +785,60 @@ def show_starrating(score_or_vote, stars=None, split=None):
             from decimal import Decimal
             step = Decimal(1) / split
         else:
-            step =  handler.score_step
+            step = handler.score_step
         # using starrating widget displaying it in read-only mode
         from ratings.forms import StarWidget
         widget = StarWidget(1, max_value, step, score_or_vote.content_object,
             can_delete_vote=handler.can_delete_vote, read_only=True)
+        # duck taking the score value
+        try:
+            value = score_or_vote.average
+        except AttributeError:
+            value = score_or_vote.score
+        # the widget has a *get_context* method: how lucky we are!
+        return widget.get_context(u'score', value, {'id': u'id_score'})
+    return {}
+
+
+# Bootstrap star rating
+
+@register.inclusion_tag("ratings/bootstrap_widget.html")
+def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
+    """
+    Show the starrating widget in read-only mode for the given *score_or_vote*.
+    If *score_or_vote* is a score instance, then the average score is displayed.
+
+    Usage:
+
+    .. code-block:: html+django
+
+        {# show star rating for the given vote #}
+        {% show_bootstrap_starrating vote %}
+
+        {# show star rating for the given score #}
+        {% show_bootstrap_starrating score %}
+
+        {# show star rating for the given score, using 10 stars with half votes #}
+        {% show_bootstrap_starrating score 10 2 %}
+
+    Normally the handler is used to get the number of stars and the how each
+    one must be splitted, but you can override using *stars* and *split*
+    arguments.
+    """
+    model = score_or_vote.content_type.model_class()
+    handler = handlers.ratings.get_handler(model)
+    if handler:
+        # getting *max_value* and *step*
+        max_value = stars or handler.score_range[1]
+        if split:
+            from decimal import Decimal
+            step = Decimal(1) / split
+        else:
+            step = handler.score_step
+        # using starrating widget displaying it in read-only mode
+        from ratings.forms import BootstrapWidget
+        widget = BootstrapWidget(0, max_value, step, score_or_vote.content_object,
+            can_delete_vote=handler.can_delete_vote, read_only=True, show_clear=False)
         # duck taking the score value
         try:
             value = score_or_vote.average

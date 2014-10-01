@@ -3,11 +3,11 @@ import time
 from django import forms
 from django.contrib.contenttypes.models import ContentType
 from django.utils.crypto import salted_hmac, constant_time_compare
-from django.utils.encoding import force_unicode
 
 from ratings import cookies, exceptions
 
-from widgets import SliderWidget, StarWidget
+from widgets import SliderWidget, StarWidget, BootstrapWidget
+
 
 class VoteForm(forms.Form):
     """
@@ -26,7 +26,7 @@ class VoteForm(forms.Form):
           returning True if the form requests the deletion of the vote
     """
     # rating data
-    content_type  = forms.CharField(widget=forms.HiddenInput)
+    content_type = forms.CharField(widget=forms.HiddenInput)
     object_pk = forms.CharField(widget=forms.HiddenInput)
     key = forms.RegexField(regex=r'^[\w.+-]+$', widget=forms.HiddenInput,
         required=False)
@@ -37,7 +37,7 @@ class VoteForm(forms.Form):
     honeypot = forms.CharField(required=False, widget=forms.HiddenInput)
 
     def __init__(self, target_object, key, score_range=None, score_step=None,
-        can_delete_vote=None, data=None, initial=None):
+            can_delete_vote=None, data=None, initial=None):
         self.target_object = target_object
         self.key = key
         self.score_range = score_range
@@ -82,10 +82,10 @@ class VoteForm(forms.Form):
         Check the security hash.
         """
         security_hash_dict = {
-            'content_type' : self.data.get('content_type', ''),
-            'object_pk' : self.data.get('object_pk', ''),
+            'content_type': self.data.get('content_type', ''),
+            'object_pk': self.data.get('object_pk', ''),
             'key': self.data.get('key', ''),
-            'timestamp' : self.data.get('timestamp', ''),
+            'timestamp': self.data.get('timestamp', ''),
         }
         expected_hash = self.generate_security_hash(**security_hash_dict)
         actual_hash = self.cleaned_data['security_hash']
@@ -131,11 +131,11 @@ class VoteForm(forms.Form):
         and a (unix) timestamp.
         """
         initial_security_dict = {
-            'content_type' : str(self.target_object._meta),
-            'object_pk' : str(self.target_object._get_pk_val()),
+            'content_type': str(self.target_object._meta),
+            'object_pk': str(self.target_object._get_pk_val()),
             'key': str(self.key),
-            'timestamp' : str(timestamp),
-          }
+            'timestamp': str(timestamp),
+        }
         return self.generate_security_hash(**initial_security_dict)
 
     def generate_security_hash(self, content_type, object_pk, key, timestamp):
@@ -219,7 +219,7 @@ class VoteForm(forms.Form):
             cookie_value = request.COOKIES.get(cookie_name)
             if cookie_value:
                 # the user maybe voted this object (it has a cookie)
-                lookups.update({'cookie': cookie_value, 'user__isnull':True})
+                lookups.update({'cookie': cookie_value, 'user__isnull': True})
                 data['cookie'] = cookie_value
             else:
                 lookups = None
@@ -325,4 +325,18 @@ class StarVoteForm(VoteForm):
     """
     def get_score_widget(self, score_range, score_step, can_delete_vote):
         return StarWidget(score_range[0], score_range[1], score_step,
+            instance=self.target_object, can_delete_vote=can_delete_vote, key=self.key)
+
+
+class BootstrapVoteForm(VoteForm):
+    """
+    Handle voting using a star widget.
+
+    In order to use this form you must download the
+    jQuery Star Rating Plugin available at
+    https://github.com/kartik-v/bootstrap-star-rating
+    and then load the required javascripts and css, e.g.
+    """
+    def get_score_widget(self, score_range, score_step, can_delete_vote):
+        return BootstrapWidget(score_range[0], score_range[1], score_step,
             instance=self.target_object, can_delete_vote=can_delete_vote, key=self.key)
