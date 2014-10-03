@@ -807,6 +807,7 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
     """
     Show the starrating widget in read-only mode for the given *score_or_vote*.
     If *score_or_vote* is a score instance, then the average score is displayed.
+    If *score_or_vote* evaluates to None a "empty" widget is displayed.
 
     Usage:
 
@@ -825,25 +826,41 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
     one must be splitted, but you can override using *stars* and *split*
     arguments.
     """
+    from ratings.forms import BootstrapWidget
+    if split:
+        from decimal import Decimal
+        step = Decimal(1) / split
+    else:
+        step = 0.5
+    if not score_or_vote:
+        # display an "empty", "unrated" widget
+        widget = BootstrapWidget(0, 5, step, None,
+            can_delete_vote=False, read_only=True, show_clear=False)
+        context = widget.get_context(u'score', 0)
+        context.update({
+            'empty': True})
+        return context
     model = score_or_vote.content_type.model_class()
     handler = handlers.ratings.get_handler(model)
     if handler:
         # getting *max_value* and *step*
         max_value = stars or handler.score_range[1]
-        if split:
-            from decimal import Decimal
-            step = Decimal(1) / split
-        else:
+        if not split:
             step = handler.score_step
         # using starrating widget displaying it in read-only mode
-        from ratings.forms import BootstrapWidget
         widget = BootstrapWidget(0, max_value, step, score_or_vote.content_object,
             can_delete_vote=handler.can_delete_vote, read_only=True, show_clear=False)
-        # duck taking the score value
-        try:
+        if score_or_vote.__class__.__name__ == 'Score':
             value = score_or_vote.average
-        except AttributeError:
+        else:  # vote
             value = score_or_vote.score
         # the widget has a *get_context* method: how lucky we are!
-        return widget.get_context(u'score', value, {'id': u'id_score'})
+        context = widget.get_context(u'score', value)
+        # score: display number of votes
+        if score_or_vote.__class__.__name__ == 'Score':
+            num_votes = score_or_vote.num_votes
+            context.update({
+                'show_num': True,
+                'num_votes': num_votes})
+        return context
     return {}

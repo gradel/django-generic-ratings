@@ -58,18 +58,24 @@
                 submit_form(form_object);
                 return false;
             });
-            form_object.bind('star_change', function(event, value) {
-                submit_form(form_object);
-            });
-            form_object.bind('rating.change', function(event) {
-                submit_form(form_object);
-            });
-            form_object.bind('star_delete', function(event) {
-                submit_form(form_object);
-            });
-            form_object.bind('slider_delete', function(event) {
-                submit_form(form_object);
-            });
+            if ($(this).find('.star-container').attr('data-rating-type') === 'bootstrap-star') {
+                form_object.bind('rating.change', function(event) {
+                    submit_form(form_object);
+                });
+                form_object.bind('rating.clear', function(event) {
+                    submit_form(form_object);
+                });
+            } else {
+                form_object.bind('star_change', function(event, value) {
+                    submit_form(form_object);
+                });
+                form_object.bind('star_delete', function(event) {
+                    submit_form(form_object);
+                });
+                form_object.bind('slider_delete', function(event) {
+                    submit_form(form_object);
+                });
+            }
         });
     });
 })(jQuery);

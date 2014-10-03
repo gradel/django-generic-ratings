@@ -1,12 +1,24 @@
-{% load l10n %}
+{% load i18n l10n %}
 
 {% block widget %}
-    <div class="star-container" id="{{ star_id }}">
+<div class="star-container" id="{{ star_id }}" data-rating-type="bootstrap-star">
+    <h1>{{ show_num }}</h1>
         <input type="text" name="score"
             class="stardust rating"
             data-readonly="{% if readonly %}true{% else %}false{% endif %}"
             data-show-clear="{% if show_clear %}true{% else %}false{% endif %}"
-            value="{{ value|unlocalize }}" />
+            data-clear-caption=""
+            data-size="sm"
+            {% if min_value %}
+            data-min="{{ min }}"
+            {% endif %}
+            {% if max_value %}
+            data-max="{{ max }}"
+            {% endif %}
+            {% if step %}
+            data-step="{{ step }}"
+            {% endif %}
+            value="{{ value|default:0|unlocalize }}" />
     </div>
 {% endblock %}
 
@@ -14,6 +26,10 @@
     {# requires jquery to be loaded upfront. todo: fix #}
     <script type="text/javascript" charset="utf-8">
         var input = $('#{{ star_id }} :text.stardust');
-        input.rating('update', {{ value|unlocalize }});
+        input.rating({
+            'starCaptions': function(val) {
+                return {% if show_num %}{{ num_votes|default:0 }}{% else %}val{% endif %};
+            }
+        });
     </script>
 {% endblock %}

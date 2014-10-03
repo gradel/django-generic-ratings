@@ -186,27 +186,10 @@ class BootstrapWidget(BaseWidget):
     """
     rating widget.
 
-    In order to use this widget you must download the
-    jQuery Star Rating Plugin available at
-    http://www.fyneworks.com/jquery/star-rating/#tab-Download
-    and then load the required javascripts and css, e.g.::
-
-        <link href="/path/to/jquery.rating.css" rel="stylesheet" type="text/css" />
-        <script type="text/javascript" src="/path/to/jquery.MetaData.js"></script>
-        <script type="text/javascript" src="/path/to/jquery.rating.js"></script>
-
-    This widget triggers the following javascript events:
-
-    - *star_change* with the vote value as argument
-      (fired when the user changes his vote)
-    - *star_delete* without arguments
-      (fired when the user deletes his vote)
-
-    It's easy to bind these events using jQuery, e.g.::
-
-        $(document).bind('star_change', function(event, value) {
-            alert('New vote: ' + value);
-        });
+    In order to use this form you must download the
+    Bootstrap Star Rating Plugin available at
+    https://github.com/kartik-v/bootstrap-star-rating
+    and then load the required javascripts and css.
     """
     def __init__(self, min_value, max_value, step,
             instance=None,
@@ -228,20 +211,21 @@ class BootstrapWidget(BaseWidget):
         self.show_clear = show_clear
 
     def get_context(self, name, value, attrs=None):
-        attrs['type'] = 'hidden'
         split_value = int(1 / self.step)
-        return {
-            'min_value': str(self.min_value),
-            'max_value': str(self.max_value),
+        value = self._get_value(value, split_value)
+        context = {
+            # switch identifiers from django-ratings app to bootstrap-
+            # rating app style, i.e. min_value -> min
+            'min': str(self.min_value),
+            'max': str(self.max_value),
             'step': str(self.step),
             'can_delete_vote': self.can_delete_vote,
             'readonly': self.read_only,
-            'parent': super(BootstrapWidget, self).render(name, value, attrs),
-            'parent_id': self.get_parent_id(name, attrs),
-            'value': self._get_value(value, split_value),
+            'value': value,
             'star_id': self.get_widget_id('star', name, self.key),
             'show_clear': self.show_clear,
         }
+        return context
 
     def _get_value(self, original, split):
         if original:
