@@ -1,8 +1,16 @@
+from django import VERSION
 from django.db import IntegrityError
 from django.db.models.base import ModelBase
 from django.db.models.signals import pre_delete as pre_delete_signal
 
 from ratings import settings, models, forms, exceptions, signals, cookies
+
+
+def _model_name(model):
+    if VERSION < (1, 7):
+        return model._meta.module_name
+    else:
+        return model._meta.model_name
 
 
 class RatingHandler(object):
@@ -616,7 +624,7 @@ class Ratings(object):
             if model in self._registry:
                 raise exceptions.AlreadyHandled(
                     "The model '%s' is already being handled" %
-                    model._meta.module_name)
+                    _model_name(model))
             handler = self.get_handler_instance(model, handler_class, kwargs)
             self._registry[model] = handler
             self.connect_model_signals(model, handler)
@@ -634,7 +642,7 @@ class Ratings(object):
             if model not in self._registry:
                 raise exceptions.NotHandled(
                     "The model '%s' is not currently being handled" %
-                    model._meta.module_name)
+                    _model_name(model))
             del self._registry[model]
 
     def get_handler(self, model_or_instance):

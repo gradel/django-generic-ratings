@@ -3,6 +3,14 @@ from decimal import Decimal
 from django import forms
 from django.template.loader import render_to_string
 from django.template.defaultfilters import slugify
+from django import VERSION
+
+
+def _model_name(model):
+    if VERSION < (1, 7):
+        return model._meta.module_name
+    else:
+        return model._meta.model_name
 
 
 class BaseWidget(forms.TextInput):
@@ -26,7 +34,7 @@ class BaseWidget(forms.TextInput):
     def get_widget_id(self, prefix, name, key=''):
         if self.instance:
             opts = self.instance._meta
-            widget_id = '%s-%s-%s_%s-%s' % (prefix, name, opts.app_label, opts.module_name, self.instance.pk)
+            widget_id = '%s-%s-%s_%s-%s' % (prefix, name, opts.app_label, _model_name(self.instance), self.instance.pk)
         else:
             widget_id = '%s-%s' % (prefix, name)
         if key:
