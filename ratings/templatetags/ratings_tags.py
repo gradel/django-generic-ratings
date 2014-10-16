@@ -803,7 +803,7 @@ def show_starrating(score_or_vote, stars=None, split=None):
 # Bootstrap star rating
 
 @register.inclusion_tag("ratings/bootstrap_widget.html")
-def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
+def show_bootstrap_starrating(score_or_vote, stars=None, split=None, size="sm"):
     """
     Show the starrating widget in read-only mode for the given *score_or_vote*.
     If *score_or_vote* is a score instance, then the average score is displayed.
@@ -838,7 +838,8 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
             can_delete_vote=False, read_only=True, show_clear=False)
         context = widget.get_context(u'score', 0)
         context.update({
-            'empty': True})
+            'empty': True,
+            'size': size})
         return context
     model = score_or_vote.content_type.model_class()
     handler = handlers.ratings.get_handler(model)
@@ -861,6 +862,7 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None):
             num_votes = score_or_vote.num_votes
             context.update({
                 'show_num': True,
-                'num_votes': num_votes})
+                'num_votes': num_votes,
+                'size': size})
         return context
     return {}

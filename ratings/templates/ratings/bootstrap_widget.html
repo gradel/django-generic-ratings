@@ -6,7 +6,7 @@
         data-readonly="{% if readonly %}true{% else %}false{% endif %}"
         data-show-clear="{% if show_clear %}true{% else %}false{% endif %}"
         data-clear-caption=""
-        data-size="sm"
+        data-size="{{ size|default:'sm' }}"
         {% if min_value %}
         data-min="{{ min }}"
         {% endif %}

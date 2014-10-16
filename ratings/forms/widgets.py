@@ -206,7 +206,8 @@ class BootstrapWidget(BaseWidget):
             read_only=False,
             template='ratings/bootstrap_widget.html',
             attrs=None,
-            show_clear=True):
+            show_clear=True,
+            size='sm'):
         super(BootstrapWidget, self).__init__(attrs)
         self.min_value = min_value
         self.max_value = max_value
@@ -217,6 +218,7 @@ class BootstrapWidget(BaseWidget):
         self.template = template
         self.key = key
         self.show_clear = show_clear
+        self.size = size
 
     def get_context(self, name, value, attrs=None):
         split_value = int(1 / self.step)
@@ -232,6 +234,7 @@ class BootstrapWidget(BaseWidget):
             'value': value,
             'star_id': self.get_widget_id('star', name, self.key),
             'show_clear': self.show_clear,
+            'size': self.size
         }
         return context
 
