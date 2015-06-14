@@ -1,6 +1,6 @@
 import string
 
-from django.db import models, transaction, IntegrityError
+from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.utils.datastructures import SortedDict
@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from ratings import managers
 
 # MODELS
+
 
 class Score(models.Model):
     """
@@ -210,6 +211,7 @@ def delete_scores_for(instance_or_content):
     content_type, object_id = _get_content(instance_or_content)
     Score.objects.filter(content_type=content_type, object_id=object_id).delete()
 
+
 def delete_votes_for(instance_or_content):
     """
     Delete all vote objects related to *instance_or_content*, that can be
@@ -219,6 +221,7 @@ def delete_votes_for(instance_or_content):
     Vote.objects.filter(content_type=content_type, object_id=object_id).delete()
 
 # IN BULK SELECT QUERIES
+
 
 def annotate_scores(queryset_or_model, key, **kwargs):
     """
@@ -257,7 +260,7 @@ def annotate_scores(queryset_or_model, key, **kwargs):
     # annotations are done only if fields are requested
     if kwargs:
         # preparing arguments for *extra* query
-        select = SortedDict() # not really needed (see below)
+        select = SortedDict()  # not really needed (see below)
         select_params = []
         opts = queryset.model._meta
         content_type = managers.get_content_type_for_model(queryset.model)
@@ -284,6 +287,7 @@ def annotate_scores(queryset_or_model, key, **kwargs):
             select_params.append(key)
         return queryset.extra(select=select, select_params=select_params)
     return queryset
+
 
 def annotate_votes(queryset_or_model, key, user, score='score'):
     """
