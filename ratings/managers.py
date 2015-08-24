@@ -1,13 +1,34 @@
+from functools import wraps
+
 from django.db import models
-from django.utils.functional import memoize
 from django.contrib.contenttypes.models import ContentType
 
 _get_content_type_for_model_cache = {}
 
+
+def memoize(func, cache, num_args):
+    """
+    Wrap a function so that results for any argument tuple are stored in
+    'cache'. Note that the args to the function must be usable as dictionary
+    keys.
+
+    Only the first num_args are considered when creating the key.
+    """
+    @wraps(func)
+    def wrapper(*args):
+        mem_args = args[:num_args]
+        if mem_args in cache:
+            return cache[mem_args]
+        result = func(*args)
+        cache[mem_args] = result
+        return result
+    return wrapper
+
+
 def get_content_type_for_model(model):
     return ContentType.objects.get_for_model(model)
 
-get_content_type_for_model = memoize(get_content_type_for_model, 
+get_content_type_for_model = memoize(get_content_type_for_model,
     _get_content_type_for_model_cache, 1)
 
 
@@ -17,10 +38,10 @@ class QuerysetWithContents(object):
     """
     def __init__(self, queryset):
         self.queryset = queryset
-        
+
     def __getattr__(self, name):
         if name in ('get', 'create', 'get_or_create', 'count', 'in_bulk',
-            'iterator', 'latest', 'aggregate', 'exists', 'update', 'delete'):
+                'iterator', 'latest', 'aggregate', 'exists', 'update', 'delete'):
             return getattr(self.queryset, name)
         if hasattr(self.queryset, name):
             attr = getattr(self.queryset, name)
@@ -30,10 +51,10 @@ class QuerysetWithContents(object):
                 return _wrap
             return attr
         raise AttributeError(name)
-            
+
     def __getitem__(self, key):
         return self.__class__(self.queryset[key])
-        
+
     def __iter__(self):
         objects = list(self.queryset)
         generics = {}
@@ -45,13 +66,13 @@ class QuerysetWithContents(object):
             model = content_types[content_type_id].model_class()
             relations[content_type_id] = model.objects.in_bulk(pk_list)
         for i in objects:
-            setattr(i, '_content_object_cache', 
+            setattr(i, '_content_object_cache',
                 relations[i.content_type_id][i.object_id])
         return iter(objects)
-        
+
     def __len__(self):
         return len(self.queryset)
-                
+
 
 class RatingsManager(models.Manager):
     """
@@ -59,19 +80,19 @@ class RatingsManager(models.Manager):
     """
     def get_for(self, content_object, key, **kwargs):
         """
-        Return the instance related to *content_object* and matching *kwargs*. 
+        Return the instance related to *content_object* and matching *kwargs*.
         Return None if a vote is not found.
         """
         content_type = get_content_type_for_model(type(content_object))
         try:
-            return self.get(key=key, content_type=content_type, 
+            return self.get(key=key, content_type=content_type,
                 object_id=content_object.pk, **kwargs)
         except self.model.DoesNotExist:
             return None
-            
+
     def filter_for(self, content_object_or_model, **kwargs):
         """
-        Return all the instances related to *content_object_or_model* and 
+        Return all the instances related to *content_object_or_model* and
         matching *kwargs*. The argument *content_object_or_model* can be
         both a model instance or a model class.
         """
@@ -86,12 +107,12 @@ class RatingsManager(models.Manager):
             }
         lookups.update(kwargs)
         return self.filter(**lookups)
-            
+
     def filter_with_contents(self, **kwargs):
         """
         Return all instances retreiving content objects in bulk in order
         to minimize db queries, e.g. to get all objects voted by a user::
-        
+
             for vote in Vote.objects.filter_with_contents(user=myuser):
                 vote.content_object # this does not hit the db
         """

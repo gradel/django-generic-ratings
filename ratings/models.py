@@ -2,7 +2,7 @@ import string
 
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes import fields
 from django.utils.datastructures import SortedDict
 from django.contrib.auth.models import User
 
@@ -17,7 +17,7 @@ class Score(models.Model):
     """
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = fields.GenericForeignKey('content_type', 'object_id')
 
     key = models.CharField(max_length=16)
 
@@ -87,7 +87,7 @@ class Vote(models.Model):
     """
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = fields.GenericForeignKey('content_type', 'object_id')
 
     key = models.CharField(max_length=16)
     score = models.FloatField()
@@ -341,8 +341,8 @@ class RatedModel(models.Model):
     """
     Mixin for votable models.
     """
-    rating_scores = generic.GenericRelation(Score)
-    rating_votes = generic.GenericRelation(Vote)
+    rating_scores = fields.GenericRelation(Score)
+    rating_votes = fields.GenericRelation(Vote)
 
     class Meta:
         abstract = True
