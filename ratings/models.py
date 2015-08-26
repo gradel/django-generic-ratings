@@ -1,10 +1,10 @@
 import string
 
 from django.db import models
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 from django.utils.datastructures import SortedDict
-from django.contrib.auth.models import User
 
 from ratings import managers
 
@@ -92,7 +92,7 @@ class Vote(models.Model):
     key = models.CharField(max_length=16)
     score = models.FloatField()
 
-    user = models.ForeignKey(User, blank=True, null=True, related_name='votes')
+    user = models.ForeignKey(getattr(settings, 'AUTH_USER_MODEL', 'auth.User'), blank=True, null=True, related_name='votes')
     ip_address = models.GenericIPAddressField(null=True)
     cookie = models.CharField(max_length=64, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

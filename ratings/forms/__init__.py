@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import time
 
 from django import forms
@@ -6,7 +8,7 @@ from django.utils.crypto import salted_hmac, constant_time_compare
 
 from ratings import cookies, exceptions
 
-from widgets import SliderWidget, StarWidget, BootstrapWidget
+from .widgets import SliderWidget, StarWidget, BootstrapWidget
 
 
 class VoteForm(forms.Form):
