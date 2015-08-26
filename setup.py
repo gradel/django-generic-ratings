@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 import os
 
 root_dir = os.path.dirname(__file__)
@@ -23,7 +23,6 @@ setup(name='django-generic-ratings',
     author='Francesco Banconi',
     author_email='francesco.banconi@gmail.com',
     url='https://bitbucket.org/frankban/django-generic-ratings/',
-    zip_safe=False,
     packages=[
         'ratings',
         'ratings.templatetags',
