@@ -5,12 +5,14 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 from django.utils.datastructures import SortedDict
+from django.utils.encoding import python_2_unicode_compatible
 
 from ratings import managers
 
 # MODELS
 
 
+@python_2_unicode_compatible
 class Score(models.Model):
     """
     A score for a content object.
@@ -31,7 +33,7 @@ class Score(models.Model):
     class Meta:
         unique_together = ('content_type', 'object_id', 'key')
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Score for %s' % self.content_object
 
     def get_votes(self):
@@ -81,6 +83,7 @@ class Score(models.Model):
         return get_stats_for(self.get_votes(), num_votes=self.num_votes)
 
 
+@python_2_unicode_compatible
 class Vote(models.Model):
     """
     A single vote relating a content object.
@@ -107,7 +110,7 @@ class Vote(models.Model):
             ('content_type', 'object_id', 'key', 'ip_address', 'cookie'),
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return u'Vote %d to %s by %s' % (self.score, self.content_object,
             self.user or self.ip_address)
 
