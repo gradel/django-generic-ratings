@@ -1,3 +1,4 @@
+from __future__ import print_function
 from django.core.management.base import BaseCommand, make_option
 
 from ratings import models
@@ -28,6 +29,6 @@ class Command(BaseCommand):
             if content not in buffer:
                 if verbose:
                     counter += 1
-                    print u'#%d - model %s id %s key %s' % ((counter,) + content)
+                    print(u'#%d - model %s id %s key %s' % ((counter,) + content))
                 models.upsert_score(content[:2], content[2], options['weight'])
                 buffer.add(content)

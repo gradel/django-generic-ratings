@@ -1,3 +1,5 @@
+from __future__ import division
+from past.utils import old_div
 import re
 
 from django import template
@@ -266,12 +268,12 @@ def scores_annotate(parser, token):
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
         error = u"%r tag requires arguments" % token.contents.split()[0]
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # args validation
     match = SCORES_ANNOTATE_EXPRESSION.match(arg)
     if not match:
         error = u"%r tag has invalid arguments" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     kwargs = match.groupdict()
     # fields validation
     fields = kwargs.pop('fields')
@@ -279,7 +281,7 @@ def scores_annotate(parser, token):
         fields_map = dict(i.split("=") for i in fields.split(","))
     except (TypeError, ValueError):
         error = u"%r tag has invalid field arguments" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # to the node
     return ScoresAnnotateNode(fields_map, **kwargs)
 
@@ -288,7 +290,7 @@ class ScoresAnnotateNode(template.Node):
     def __init__(self, fields_map, queryset, key, order_by, varname):
         # fields
         self.fields_map = {}
-        for k, v in fields_map.items():
+        for k, v in list(fields_map.items()):
             data = {'value': None, 'variable': None}
             if v[0] in ('"', "'") and v[-1] == v[0]:
                 data['value'] = v[1:-1]
@@ -317,7 +319,7 @@ class ScoresAnnotateNode(template.Node):
     def render(self, context):
         # fields
         fields_map = {}
-        for k, v in self.fields_map.items():
+        for k, v in list(self.fields_map.items()):
             if v['variable'] is None:
                 fields_map[k] = v['value']
             else:
@@ -404,12 +406,12 @@ def get_rating_vote(parser, token):
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
         error = u"%r tag requires arguments" % token.contents.split()[0]
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # args validation
     match = GET_RATING_VOTE_EXPRESSION.match(arg)
     if not match:
         error = u"%r tag has invalid arguments" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     return RatingVoteNode(**match.groupdict())
 
 
@@ -561,12 +563,12 @@ def _get_latest_vote(parser, token, expression):
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
         error = u"%r tag requires arguments" % token.contents.split()[0]
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # args validation
     match = expression.match(arg)
     if not match:
         error = u"%r tag has invalid arguments" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # to the node
     return LatestVotesNode(**match.groupdict())
 
@@ -679,12 +681,12 @@ def votes_annotate(parser, token):
         tag_name, arg = token.contents.split(None, 1)
     except ValueError:
         error = u"%r tag requires arguments" % token.contents.split()[0]
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # args validation
     match = VOTES_ANNOTATE_EXPRESSION.match(arg)
     if not match:
         error = u"%r tag has invalid arguments" % tag_name
-        raise template.TemplateSyntaxError, error
+        raise template.TemplateSyntaxError(error)
     # to the node
     return VotesAnnotateNode(**match.groupdict())
 
@@ -783,7 +785,7 @@ def show_starrating(score_or_vote, stars=None, split=None):
         max_value = stars or handler.score_range[1]
         if split:
             from decimal import Decimal
-            step = Decimal(1) / split
+            step = old_div(Decimal(1), split)
         else:
             step = handler.score_step
         # using starrating widget displaying it in read-only mode
@@ -829,7 +831,7 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None, size="sm"):
     from ratings.forms import BootstrapWidget
     if split:
         from decimal import Decimal
-        step = Decimal(1) / split
+        step = old_div(Decimal(1), split)
     else:
         step = 0.5
     if not score_or_vote:

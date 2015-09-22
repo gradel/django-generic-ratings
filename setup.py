@@ -13,7 +13,7 @@ for dirpath, dirnames, filenames in os.walk('ratings'):
         continue
     elif filenames:
         for f in filenames:
-            data_files.append(os.path.join(dirpath[len("ratings")+1:], f))
+            data_files.append(os.path.join(dirpath[len("ratings") + 1:], f))
 
 version = "%s.%s" % __import__('ratings').VERSION[:2]
 
@@ -32,6 +32,9 @@ setup(name='django-generic-ratings',
         'ratings.management.commands',
     ],
     package_data={'ratings': data_files},
+    install_requires=[
+        'future'
+    ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
@@ -40,6 +43,10 @@ setup(name='django-generic-ratings',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Utilities'
     ],
 )
