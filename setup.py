@@ -17,6 +17,12 @@ for dirpath, dirnames, filenames in os.walk('ratings'):
 
 version = "%s.%s" % __import__('ratings').VERSION[:2]
 
+install_requires = open('requirements.txt').read().splitlines()
+
+dev_requires = [
+    'flake8',
+]
+
 setup(name='django-generic-ratings',
     version=version,
     description='Django ratings tools supporting ajax, generic content type scores, multiple ratings for each content object.',
@@ -32,9 +38,10 @@ setup(name='django-generic-ratings',
         'ratings.management.commands',
     ],
     package_data={'ratings': data_files},
-    install_requires=[
-        'future'
-    ],
+    install_requires=install_requires,
+    extras_require={
+        'dev': dev_requires,
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
@@ -49,4 +56,5 @@ setup(name='django-generic-ratings',
         'Programming Language :: Python :: 3.4',
         'Topic :: Utilities'
     ],
+    test_suite='ratings.tests.runtests.runtests',
 )

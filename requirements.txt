@@ -1,0 +1,3 @@
+django
+future
+django-nose
