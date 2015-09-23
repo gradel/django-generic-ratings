@@ -1,4 +1,4 @@
-from django.db.models import get_model
+from django.apps import apps as django_apps
 from django import http
 
 from ratings import handlers, signals
@@ -19,7 +19,7 @@ def vote(request, extra_context=None, form_class=None, using=None):
             return http.HttpResponseBadRequest('Missing required fields.')
 
         # getting current model and rating handler
-        model = get_model(*content_type.split('.'))
+        model = django_apps.get_model(*content_type.split('.'))
         handler = handlers.ratings.get_handler(model)
         if handler is None:
             # bad or unregistered content type, bad request
