@@ -2,7 +2,6 @@ import string
 
 from django.db import models
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
 from django.utils.datastructures import SortedDict
 
@@ -15,7 +14,7 @@ class Score(models.Model):
     """
     A score for a content object.
     """
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
@@ -85,7 +84,7 @@ class Vote(models.Model):
     """
     A single vote relating a content object.
     """
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
