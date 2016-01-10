@@ -1,5 +1,4 @@
 from __future__ import division
-from past.utils import old_div
 import re
 
 from django import template
@@ -785,7 +784,7 @@ def show_starrating(score_or_vote, stars=None, split=None):
         max_value = stars or handler.score_range[1]
         if split:
             from decimal import Decimal
-            step = old_div(Decimal(1), split)
+            step = Decimal(1) / Decimal(split)
         else:
             step = handler.score_step
         # using starrating widget displaying it in read-only mode
@@ -831,7 +830,7 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None, size="sm"):
     from ratings.forms import BootstrapWidget
     if split:
         from decimal import Decimal
-        step = old_div(Decimal(1), split)
+        step = Decimal(1) / Decimal(split)
     else:
         step = 0.5
     if not score_or_vote:
