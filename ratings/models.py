@@ -1,10 +1,9 @@
 import string
 
+from collections import OrderedDict
 from django.db import models
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import fields
-from django.utils.datastructures import SortedDict
 from django.utils.encoding import python_2_unicode_compatible
 
 from ratings import managers
@@ -17,7 +16,7 @@ class Score(models.Model):
     """
     A score for a content object.
     """
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
@@ -70,7 +69,7 @@ class Score(models.Model):
     def get_stats(self):
         """
         Return useful statistics for all the related votes
-        (same *content_object* and *key*). as a *SortedDict* mapping
+        (same *content_object* and *key*). as a *OrderedDict* mapping
         the single score with stats, e.g.::
 
             1.0: {
@@ -88,7 +87,7 @@ class Vote(models.Model):
     """
     A single vote relating a content object.
     """
-    content_type = models.ForeignKey(ContentType)
+    content_type = models.ForeignKey('contenttypes.ContentType')
     object_id = models.PositiveIntegerField()
     content_object = fields.GenericForeignKey('content_type', 'object_id')
 
@@ -154,7 +153,7 @@ def _get_content(instance_or_content):
 
 def get_stats_for(votes, num_votes=None):
     """
-    Return useful statistics for given *votes* as a *SortedDict* mapping
+    Return useful statistics for given *votes* as a *OrderedDict* mapping
     the single score with stats, e.g.::
 
         1.0: {
@@ -171,7 +170,7 @@ def get_stats_for(votes, num_votes=None):
             num_votes = len(votes)
     votes_stats = votes.order_by('score').values('score').annotate(
         num_votes=models.Count('score'))
-    stats = SortedDict()
+    stats = OrderedDict()
     for i in votes_stats:
         i.update({
             'total_num_votes': num_votes,
@@ -263,7 +262,7 @@ def annotate_scores(queryset_or_model, key, **kwargs):
     # annotations are done only if fields are requested
     if kwargs:
         # preparing arguments for *extra* query
-        select = SortedDict()  # not really needed (see below)
+        select = OrderedDict()  # not really needed (see below)
         select_params = []
         opts = queryset.model._meta
         content_type = managers.get_content_type_for_model(queryset.model)
@@ -286,7 +285,7 @@ def annotate_scores(queryset_or_model, key, **kwargs):
             query = string.Template(template).substitute(
                 {'field_name': field_name})
             select[alias] = query
-            # and that's why SortedDict are not really needed
+            # and that's why OrderedDict are not really needed
             select_params.append(key)
         return queryset.extra(select=select, select_params=select_params)
     return queryset

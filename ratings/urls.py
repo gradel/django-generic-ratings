@@ -1,5 +1,6 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
+from ratings.views import vote
 
-urlpatterns = patterns('ratings.views',
-    url(r'^vote/$', 'vote', name='ratings_vote'),
-)
+urlpatterns = [
+    url(r'^vote/$', vote, name='ratings_vote'),
+]
