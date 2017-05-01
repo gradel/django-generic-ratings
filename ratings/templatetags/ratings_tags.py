@@ -867,3 +867,65 @@ def show_bootstrap_starrating(score_or_vote, stars=None, split=None, size="sm"):
                 'size': size})
         return context
     return {}
+
+
+@register.inclusion_tag("ratings/bootstrap_widget.html")
+def cached_bootstrap_starrating(cached_rating_model, stars=None, split=None, size="sm"):
+    """
+    Show the starrating widget in read-only mode for the given `cached_rating_model`.
+    If *cached_rating_model* is an instance of a model with RatingCacheMixin, then
+    the average score is displayed.
+
+    Usage:
+
+    .. code-block:: html+django
+
+        {# show star rating for the given vote #}
+        {% show_bootstrap_starrating vote %}
+
+        {# show star rating for the given score #}
+        {% show_bootstrap_starrating score %}
+
+        {# show star rating for the given score, using 10 stars with half votes #}
+        {% show_bootstrap_starrating score 10 2 %}
+
+    Normally the handler is used to get the number of stars and the how each
+    one must be splitted, but you can override using *stars* and *split*
+    arguments.
+    """
+    from ratings.forms import BootstrapWidget
+    if split:
+        from decimal import Decimal
+        step = Decimal(1) / Decimal(split)
+    else:
+        step = 0.5
+    if not cached_rating_model:
+        # display an "empty", "unrated" widget
+        widget = BootstrapWidget(
+            0, 5, step, None,
+            can_delete_vote=False, read_only=True, show_clear=False)
+        context = widget.get_context(u'score', 0)
+        context.update({
+            'empty': True,
+            'size': size})
+        return context
+    model = cached_rating_model.__class__
+    handler = handlers.ratings.get_handler(model)
+    if handler:
+        # getting *max_value* and *step*
+        max_value = stars or handler.score_range[1]
+        if not split:
+            step = handler.score_step
+        # using starrating widget displaying it in read-only mode
+        widget = BootstrapWidget(
+            0, max_value, step, cached_rating_model,
+            can_delete_vote=handler.can_delete_vote,
+            read_only=True, show_clear=False)
+        # the widget has a *get_context* method: how lucky we are!
+        context = widget.get_context(u'score', cached_rating_model.average_vote)
+        # score: display number of votes
+        context.update({
+            'show_num': True,
+            'num_votes': cached_rating_model.num_votes,
+            'size': size})
+    return context

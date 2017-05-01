@@ -5,8 +5,23 @@ from django.db import models
 from django.conf import settings
 from django.contrib.contenttypes import fields
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext as _
 
 from ratings import managers
+
+
+# MIXINS
+
+
+class RatingCacheMixin(models.Model):
+    """Add this mixin to any model to cache rating on it."""
+
+    average_vote = models.FloatField(_("rating"), null=False, default=2.5, blank=True)
+    num_votes = models.IntegerField(_("votes"), null=False, default=0, blank=True)
+
+    class Meta:
+        abstract = True
+
 
 # MODELS
 
@@ -31,6 +46,8 @@ class Score(models.Model):
 
     class Meta:
         unique_together = ('content_type', 'object_id', 'key')
+        app_label = "ratings"
+
 
     def __str__(self):
         return u'Score for %s' % self.content_object
@@ -104,6 +121,7 @@ class Vote(models.Model):
     objects = managers.RatingsManager()
 
     class Meta:
+        app_label = "ratings"
         unique_together = (
             ('content_type', 'object_id', 'key', 'user'),
             ('content_type', 'object_id', 'key', 'ip_address', 'cookie'),

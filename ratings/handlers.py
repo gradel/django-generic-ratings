@@ -545,6 +545,16 @@ class RatingHandler(object):
         models.delete_votes_for(instance)
 
 
+class RatingCacheHandler(RatingHandler):
+
+    def post_vote(self, request, vote, created):
+        instance = vote.content_object
+        score = vote.get_score()
+        instance.average_vote = score.average
+        instance.num_votes = score.num_votes
+        instance.save()
+
+
 class Ratings(object):
     """
     Registry that stores the handlers for each content type rating system.
